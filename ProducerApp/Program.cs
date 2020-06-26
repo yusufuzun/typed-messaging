@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq;
 using TypedMessagingExample.TypedMessaging;
 using TypedMessagingExample.TypedMessaging.Functions;
 using TypedMessagingExample.TypedMessaging.MessagingFacade;
 
-namespace TypedMessagingExample
+namespace ProducerApp
 {
     class Program
     {
@@ -16,40 +15,26 @@ namespace TypedMessagingExample
 
             var commands = new IMessageFunction[] { new PingCommand(messagingFacade), new FibonacciCommand(messagingFacade) };
 
-            var actions = new IMessageFunction[] { new PongFunction(messagingFacade), new FibonacciFunction(messagingFacade) };
-
-            foreach (var function in Enumerable.Concat(commands, actions))
+            foreach (var function in commands)
             {
                 messagingFacade.StoreFunction(function);
             }
 
-            Console.WriteLine("Enter p for producer , else it is consumer : ");
+            Console.WriteLine("Producer Mode");
 
-            var isProducer = Console.ReadLine() == "p";
+            Console.WriteLine("Enter p to ping , enter f {number} to fibonacci calculation , else it will quit: ");
 
-            if (isProducer)
+            messagingFacade.SubscribeFunction(channelName, new ConsoleWriteFunction());
+
+            string command;
+
+            while ((command = Console.ReadLine()) != "")
             {
-                Console.WriteLine("Producer Mode Selected");
-
-                Console.WriteLine("Enter p to ping , enter f {number} to fibonacci calculation , else it will quit: ");
-
-                messagingFacade.SubscribeFunction(channelName, new ConsoleWriteFunction());
-
-                string command;
-
-                while ((command = Console.ReadLine()) != "")
-                {
-                    messagingFacade.Send(channelName, command);
-                }
-            }
-            else
-            {
-                Console.WriteLine("Consumer Mode Selected");
-
-                messagingFacade.SubscribeStore(channelName, channelName);
+                messagingFacade.Send(channelName, command);
             }
 
             Console.WriteLine("Press anything to exit");
+
             Console.ReadLine();
         }
     }
